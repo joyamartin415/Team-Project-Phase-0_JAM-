@@ -46,7 +46,69 @@ public class EmployeeDAO {
             e.printStackTrace();
         }
     }
-// Search by EmployeeID
+    // Update Employee
+    public boolean updateEmployee(int empID) {
+
+        Employee emp = searchByEmpID(empID);
+        if (emp == null) {
+            System.out.println("Employee not found.");
+            return false;
+        }
+
+        String[] fields = {
+                "fname", "lname", "email", "dob", "hireDate", "salary", "ssn",
+                "addressID", "job_title_id", "div_ID", "mobilePhone",
+                "emergencyContactName", "emergencyContactPhone"
+        };
+
+        Scanner scanner = new Scanner(System.in);
+
+        System.out.println("Select field to update:");
+        for (int i = 0; i < fields.length; i++) {
+            System.out.println((i + 1) + ". " + fields[i]);
+        }
+
+        System.out.print("Enter selection (1-" + fields.length + "): ");
+        int choice;
+        try {
+            choice = Integer.parseInt(scanner.nextLine().trim());
+        } catch (NumberFormatException e) {
+            System.out.println("Invalid selection.");
+            return false;
+        }
+
+        if (choice < 1 || choice > fields.length) {
+            System.out.println("Invalid selection.");
+            return false;
+        }
+
+        String selectedField = fields[choice - 1];
+
+        System.out.print("Enter new value for " + selectedField + ": ");
+        String newValue = scanner.nextLine().trim();
+        if (newValue.isEmpty()) {
+            System.out.println("No value entered.");
+            return false;
+        }
+
+        System.out.print("Confirm update? (Y/N): ");
+        String confirm = scanner.nextLine().trim();
+        if (!confirm.equalsIgnoreCase("Y")) {
+            System.out.println("Update cancelled.");
+            return false;
+        }
+
+        String sql = "UPDATE employees SET " + selectedField + " = ? WHERE empID = ?";
+
+        try (Connection conn = getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+
+            switch (selectedField) {
+                case "salary":
+                    stmt.setDouble(1, Double.parseDouble(newValue));
+                    break;
+                case "addressID":
+                case "job_title_id":
                 case "div_ID":
                     stmt.setInt(1, Integer.parseInt(newValue));
                     break;
