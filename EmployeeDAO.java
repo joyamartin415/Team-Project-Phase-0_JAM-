@@ -66,8 +66,6 @@ public class EmployeeDAO {
                 "emergencyContactName", "emergencyContactPhone"
         };
 
-        Scanner scanner = new Scanner(System.in);
-
         System.out.println("Select field to update:");
         for (int i = 0; i < fields.length; i++) {
             System.out.println((i + 1) + ". " + fields[i]);
@@ -76,7 +74,7 @@ public class EmployeeDAO {
         System.out.print("Enter selection (1-" + fields.length + "): ");
         int choice;
         try {
-            choice = Integer.parseInt(scanner.nextLine().trim());
+            choice = Integer.parseInt(INPUT_SCANNER.nextLine().trim());
         } catch (NumberFormatException e) {
             System.out.println("Invalid selection.");
             return false;
@@ -90,14 +88,14 @@ public class EmployeeDAO {
         String selectedField = fields[choice - 1];
 
         System.out.print("Enter new value for " + selectedField + ": ");
-        String newValue = scanner.nextLine().trim();
+        String newValue = INPUT_SCANNER.nextLine().trim();
         if (newValue.isEmpty()) {
             System.out.println("No value entered.");
             return false;
         }
 
         System.out.print("Confirm update? (Y/N): ");
-        String confirm = scanner.nextLine().trim();
+        String confirm = INPUT_SCANNER.nextLine().trim();
         if (!confirm.equalsIgnoreCase("Y")) {
             System.out.println("Update cancelled.");
             return false;
@@ -131,6 +129,47 @@ public class EmployeeDAO {
             System.out.println("No rows updated.");
             return false;
         } catch (SQLException | NumberFormatException e) {
+            e.printStackTrace();
+            return false;
+        }
+    }
+    // Delete employee by empID
+    public boolean deleteEmployee(int empID) {
+
+        Employee emp = searchByEmpID(empID);
+        if (emp == null) {
+            System.out.println("Employee not found.");
+            return false;
+        }
+
+        System.out.println("Match found:");
+        System.out.println("EmpID: " + emp.getEmpID());
+        System.out.println("Name: " + emp.getFname() + " " + emp.getLname());
+        System.out.println("Email: " + emp.getEmail());
+
+        System.out.print("Confirm delete? (Y/N): ");
+        String confirm = INPUT_SCANNER.nextLine().trim();
+        if (!confirm.equalsIgnoreCase("Y")) {
+            System.out.println("Delete cancelled.");
+            return false;
+        }
+
+        String sql = "DELETE FROM employees WHERE empID = ?";
+
+        try (Connection conn = getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+
+            stmt.setInt(1, empID);
+            int rows = stmt.executeUpdate();
+
+            if (rows > 0) {
+                System.out.println("Employee deleted successfully.");
+                return true;
+            }
+
+            System.out.println("Delete failed.");
+            return false;
+        } catch (SQLException e) {
             e.printStackTrace();
             return false;
         }
