@@ -2,7 +2,9 @@
 // EmployeeDAO.java — searchByEmpID(), searchByName(), searchByDOB(), searchBySSN()
 // Returns Employee object or null
 
+
 import java.sql.*;
+import java.util.Scanner;
 
 public class EmployeeDAO {
 
@@ -19,32 +21,54 @@ public class EmployeeDAO {
     public void insertEmployee(Employee emp) {
 
         String sql = "insert into employees " +
-                "(empID, fname, lname, email, dob, hireDate, salary, ssn, addressID, job_title_id, div_ID, mobilePhone, emergencyContactName, emergencyContactPhone) " +
-                "values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+                "(fname, lname, email, dob, hireDate, salary, ssn, addressID, job_title_id, div_ID, mobilePhone, emergencyContactName, emergencyContactPhone) " +
+                "values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
 
         try (Connection conn = getConnection();
         PreparedStatement stmt = conn.prepareStatement(sql)) {
    
-               stmt.setInt(1, emp.getEmpID());
-               stmt.setString(2, emp.getFname());
-               stmt.setString(3, emp.getLname());
-               stmt.setString(4, emp.getEmail());
-               stmt.setString(5, emp.getDob());
-               stmt.setString(6, emp.getHireDate());
-               stmt.setDouble(7, emp.getSalary());
-               stmt.setString(8, emp.getSSN());
-               stmt.setInt(9, emp.getAddressID());
-               stmt.setInt(10, emp.getJob_title_id());
-               stmt.setInt(11, emp.getDiv_ID());
-               stmt.setString(12, emp.getMobilePhone());
-               stmt.setString(13, emp.getEmergencyContactName());
-               stmt.setString(14, emp.getEmergencyContactPhone());
+               stmt.setString(1, emp.getFname());
+               stmt.setString(2, emp.getLname());
+               stmt.setString(3, emp.getEmail());
+               stmt.setString(4, emp.getDob());
+               stmt.setString(5, emp.getHireDate());
+               stmt.setDouble(6, emp.getSalary());
+               stmt.setString(7, emp.getSSN());
+               stmt.setInt(8, emp.getAddressID());
+               stmt.setInt(9, emp.getJob_title_id());
+               stmt.setInt(10, emp.getDiv_ID());
+               stmt.setString(11, emp.getMobilePhone());
+               stmt.setString(12, emp.getEmergencyContactName());
+               stmt.setString(13, emp.getEmergencyContactPhone());
                stmt.executeUpdate();
 
         } catch (SQLException e) {
             e.printStackTrace();
         }
     }
+// Search by EmployeeID
+                case "div_ID":
+                    stmt.setInt(1, Integer.parseInt(newValue));
+                    break;
+                default:
+                    stmt.setString(1, newValue);
+            }
+
+            stmt.setInt(2, empID);
+            int rows = stmt.executeUpdate();
+
+            if (rows > 0) {
+                System.out.println("Employee updated successfully.");
+                return true;
+            }
+            System.out.println("No rows updated.");
+            return false;
+        } catch (SQLException | NumberFormatException e) {
+            e.printStackTrace();
+            return false;
+        }
+    }
+
 // Search by EmployeeID
     public Employee searchByEmpID(int empID) {
 
