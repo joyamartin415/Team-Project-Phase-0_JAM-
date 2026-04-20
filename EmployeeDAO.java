@@ -11,6 +11,11 @@ public class EmployeeDAO {
     private String url = "jdbc:mysql://localhost:3306/employeedata";
     private String user = "root";
     private String password = "password";
+    private static final Scanner INPUT_SCANNER = new Scanner(System.in);
+
+    static {
+        Runtime.getRuntime().addShutdownHook(new Thread(INPUT_SCANNER::close));
+    }
     
     // Reusable Connection Method
     private Connection getConnection() throws SQLException {
