@@ -4,115 +4,122 @@ import java.util.List;
 
 public class ReportService {
 
-    private final Connection conn;
+    private Connection conn;
 
     public ReportService(Connection conn) {
         this.conn = conn;
     }
 
-    // Report 1: Pay history for one employee — available to all roles
+    // Report 1: Pay history for one employee
     public List<String[]> getPayHistory(int empID) {
-        List<String[]> rows = new ArrayList<>();
-        String sql = "SELECT pay_date, earnings, fed_tax, fed_med, fed_SS, " +
-                     "state_tax, retire_401k, health_care " +
-                     "FROM payroll WHERE empid = ? ORDER BY pay_date DESC";
+        List<String[]> results = new ArrayList<>();
+        String sql = "SELECT payDate, salaryAmount FROM payroll WHERE empID = ? ORDER BY payDate DESC";
+
         try (PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setInt(1, empID);
             try (ResultSet rs = ps.executeQuery()) {
                 while (rs.next()) {
-                    rows.add(new String[]{
-                        rs.getString("pay_date"),
-                        rs.getString("earnings"),
-                        rs.getString("fed_tax"),
-                        rs.getString("fed_med"),
-                        rs.getString("fed_SS"),
-                        rs.getString("state_tax"),
-                        rs.getString("retire_401k"),
-                        rs.getString("health_care")
+                    results.add(new String[]{
+                        rs.getString("payDate"),
+                        rs.getString("salaryAmount")
                     });
                 }
             }
         } catch (SQLException e) {
-            System.out.println("Error fetching pay history: " + e.getMessage());
+            System.out.println("Error in getPayHistory: " + e.getMessage());
         }
-        return rows;
+
+        return results;
     }
 
-    // Report 2: Total earnings grouped by job title — HR Admin only
+    // Report 2: Total pay grouped by job title for a given month/year
     public List<String[]> getTotalPayByJobTitle(int month, int year) {
-        List<String[]> rows = new ArrayList<>();
-        String sql = "SELECT jt.job_title, SUM(p.earnings) AS total_pay " +
-                     "FROM payroll p " +
-                     "JOIN employee_job_titles ejt ON p.empid = ejt.empid " +
-                     "JOIN job_titles jt ON ejt.job_title_id = jt.job_title_id " +
-                     "WHERE MONTH(p.pay_date) = ? AND YEAR(p.pay_date) = ? " +
-                     "GROUP BY jt.job_title ORDER BY total_pay DESC";
+        List<String[]> results = new ArrayList<>();
+        String sql = """
+            SELECT jt.title, SUM(p.salaryAmount) AS totalPay
+            FROM payroll p
+            JOIN employee_job_titles ejt ON p.empID = ejt.empID
+            JOIN job_titles jt ON ejt.job_titleID = jt.job_titleID
+            WHERE MONTH(p.payDate) = ? AND YEAR(p.payDate) = ?
+            GROUP BY jt.title
+            """;
+
         try (PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setInt(1, month);
             ps.setInt(2, year);
             try (ResultSet rs = ps.executeQuery()) {
                 while (rs.next()) {
-                    rows.add(new String[]{
-                        rs.getString("job_title"),
-                        rs.getString("total_pay")
+                    results.add(new String[]{
+                        rs.getString("title"),
+                        rs.getString("totalPay")
                     });
                 }
             }
         } catch (SQLException e) {
-            System.out.println("Error fetching pay by job title: " + e.getMessage());
+            System.out.println("Error in getTotalPayByJobTitle: " + e.getMessage());
         }
-        return rows;
+
+        return results;
     }
 
-    // Report 3: Total earnings grouped by division — HR Admin only
+    // Report 3: Total pay grouped by division for a given month/year
     public List<String[]> getTotalPayByDivision(int month, int year) {
-        List<String[]> rows = new ArrayList<>();
-        String sql = "SELECT d.Name AS division, SUM(p.earnings) AS total_pay " +
-                     "FROM payroll p " +
-                     "JOIN employee_division ed ON p.empid = ed.empid " +
-                     "JOIN division d ON ed.div_ID = d.ID " +
-                     "WHERE MONTH(p.pay_date) = ? AND YEAR(p.pay_date) = ? " +
-                     "GROUP BY d.Name ORDER BY total_pay DESC";
+        List<String[]> results = new ArrayList<>();
+        String sql = """
+            SELECT d.divisionName, SUM(p.salaryAmount) AS totalPay
+            FROM payroll p
+            JOIN employee_division ed ON p.empID = ed.empID
+            JOIN division d ON ed.divID = d.divID
+            WHERE MONTH(p.payDate) = ? AND YEAR(p.payDate) = ?
+            GROUP BY d.divisionName
+            """;
+
         try (PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setInt(1, month);
             ps.setInt(2, year);
             try (ResultSet rs = ps.executeQuery()) {
                 while (rs.next()) {
-                    rows.add(new String[]{
-                        rs.getString("division"),
-                        rs.getString("total_pay")
+                    results.add(new String[]{
+                        rs.getString("divisionName"),
+                        rs.getString("totalPay")
                     });
                 }
             }
         } catch (SQLException e) {
-            System.out.println("Error fetching pay by division: " + e.getMessage());
+            System.out.println("Error in getTotalPayByDivision: " + e.getMessage());
         }
-        return rows;
+
+        return results;
     }
 
-    // Report 4: Employees hired within a date range — HR Admin only
+    // Report 4: Employees hired between two dates
     public List<String[]> getNewHires(String startDate, String endDate) {
-        List<String[]> rows = new ArrayList<>();
-        String sql = "SELECT empid, Fname, Lname, email, HireDate " +
-                     "FROM employees WHERE HireDate BETWEEN ? AND ? " +
-                     "ORDER BY HireDate";
+        List<String[]> results = new ArrayList<>();
+        String sql = """
+            SELECT empID, firstName, lastName, email, hireDate
+            FROM employees
+            WHERE hireDate BETWEEN ? AND ?
+            ORDER BY hireDate
+            """;
+
         try (PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setString(1, startDate);
             ps.setString(2, endDate);
             try (ResultSet rs = ps.executeQuery()) {
                 while (rs.next()) {
-                    rows.add(new String[]{
-                        rs.getString("empid"),
-                        rs.getString("Fname"),
-                        rs.getString("Lname"),
+                    results.add(new String[]{
+                        rs.getString("empID"),
+                        rs.getString("firstName"),
+                        rs.getString("lastName"),
                         rs.getString("email"),
-                        rs.getString("HireDate")
+                        rs.getString("hireDate")
                     });
                 }
             }
         } catch (SQLException e) {
-            System.out.println("Error fetching new hires: " + e.getMessage());
+            System.out.println("Error in getNewHires: " + e.getMessage());
         }
-        return rows;
+
+        return results;
     }
 }
